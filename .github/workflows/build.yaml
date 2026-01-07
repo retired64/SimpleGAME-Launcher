@@ -16,7 +16,7 @@ jobs:
       fail-fast: false
       matrix:
         os:
-          - ubuntu-latest
+          - ubuntu-22.04  # Cambio a 22.04 para mejor compatibilidad con PyGObject
 
     steps:
       - name: Checkout code
