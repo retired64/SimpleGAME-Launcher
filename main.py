@@ -10,7 +10,7 @@ gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk, Gdk, Gio, Pango
 gi.repository.GLib.set_prgname('pixellauncher')
 # ============================================================================
-# CONFIGURACIÓN Y CONSTANTES
+# CONFIGURACIÓN Y CONSTANTES ;)
 # ============================================================================
 APP_NAME = "Pixel Launcher Pro"
 APP_VERSION = "3.0"
