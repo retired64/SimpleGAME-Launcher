@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=Pixel Launcher
+Comment=Gaming Launcher for Linux
+Exec=gamelauncher %U
+Icon=icon
+Terminal=false
+Categories=Utility
+Keywords=gaming;launcher;gtk;
+StartupNotify=true
+X-AppImage-Version=1.0
