@@ -1,7 +1,8 @@
-name: Build Pixel Launcher Pro
+name: Build Game Editor binaries
 
 on:
   push:
+    branches: [ "main" ]
     tags:
       - 'v*'
   workflow_dispatch:
@@ -21,12 +22,21 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # PASO CRITICO: Instalar dependencias del sistema para GTK
-      # PyGObject no compilará sin estas librerías presentes en Ubuntu
-      - name: Install System Dependencies (GTK)
+      # --- CORRECCIÓN AQUÍ ---
+      # Se han añadido 'build-essential', 'libglib2.0-dev' y 'libcairo2-dev' explícitamente.
+      # Estas son obligatorias para que 'pip install pygobject' pueda compilar.
+      - name: Install System Dependencies (GTK Headers)
         run: |
           sudo apt-get update
-          sudo apt-get install -y libgirepository1.0-dev gcc libcairo2-dev pkg-config python3-dev libgtk-3-dev
+          sudo apt-get install -y \
+            build-essential \
+            python3-dev \
+            pkg-config \
+            libcairo2-dev \
+            libgirepository1.0-dev \
+            libglib2.0-dev \
+            libgtk-3-dev \
+            gir1.2-gtk-3.0
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -37,55 +47,28 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install pyinstaller
-          # Instalamos PyGObject explícitamente ya que tu código usa 'import gi'
+          # Instalar wheel primero ayuda en la compilación
+          pip install wheel
+          # Ahora sí instalamos PyGObject y tus requisitos
           pip install pygobject
-          # Si tienes un requirements.txt, descomenta la siguiente línea:
+          # Si usas requirements.txt descomenta la siguiente línea:
           # pip install -r requirements.txt
 
       - name: Build with PyInstaller
         run: |
-          # --windowed: Para que no abra una terminal negra al ejecutar
-          # --onefile: Todo en un solo archivo
-          # --hidden-import: Asegura que incluya las librerías de GTK
-          pyinstaller --onefile --windowed --name PixelLauncherPro \
-          --hidden-import="gi" \
-          main.py
-
-      - name: List built files
-        run: |
-          echo "Contents of dist directory:"
-          ls -la dist/
-          echo "Full path:"
-          pwd
-          file dist/PixelLauncherPro
+          # Asegúrate de que el nombre del script (main.py) coincida con tu archivo real
+          # --clean: Limpia caché de compilaciones previas
+          pyinstaller --noconfirm --onefile --windowed --clean \
+            --name "PixelLauncherPro" \
+            --hidden-import="gi" \
+            main.py
 
       - name: Make binary executable
         run: chmod +x dist/PixelLauncherPro
 
-      - name: Get version from tag
-        id: get_version
-        run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
-
-      - name: Create Release
-        uses: softprops/action-gh-release@v2
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
         with:
-          # Esto detecta automáticamente tu repositorio actual
-          repository: ${{ github.repository }}
-          tag_name: ${{ steps.get_version.outputs.VERSION }}
-          name: Pixel Launcher Pro ${{ steps.get_version.outputs.VERSION }}
-          body: |
-            🚀 **Pixel Launcher Pro ${{ steps.get_version.outputs.VERSION }}**
-            
-            Gestor de juegos estilo Cyberpunk para Linux.
-            
-            ## Instalación
-            1. Descarga el archivo `PixelLauncherPro`
-            2. Dale permisos de ejecución: `chmod +x PixelLauncherPro`
-            3. Ejecútalo: `./PixelLauncherPro`
-            
-            ## Requisitos
-            - Linux (Ubuntu/Debian/Fedora/Arch) con GTK 3 instalado.
-          files: |
-            dist/PixelLauncherPro
-          token: ${{ secrets.GITHUB_TOKEN }}
-          draft: false
+          name: PixelLauncherPro-Binary
+          path: dist/PixelLauncherPro
+          retention-days: 90
