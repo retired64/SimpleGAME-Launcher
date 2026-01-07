@@ -54,12 +54,24 @@ jobs:
 
       - name: Build with PyInstaller
         run: |
-          pyinstaller --noconfirm --onefile --windowed --clean \
-            --name "PixelLauncherPro" \
-            --hidden-import="gi" \
-            --hidden-import="gi.repository" \
-            --hidden-import="gi.repository.Gtk" \
-            main.py
+          # Opción 1: Usar el .spec si existe
+          if [ -f "PixelLauncherPro.spec" ]; then
+            pyinstaller --clean PixelLauncherPro.spec
+          else
+            # Opción 2: Build directo con todos los parámetros
+            pyinstaller --noconfirm --onefile --clean \
+              --name "PixelLauncherPro" \
+              --hidden-import="gi" \
+              --hidden-import="gi.repository" \
+              --hidden-import="gi.repository.Gtk" \
+              --hidden-import="gi.repository.Gdk" \
+              --hidden-import="gi.repository.Gio" \
+              --hidden-import="gi.repository.GLib" \
+              --hidden-import="gi.repository.Pango" \
+              --collect-all gi \
+              --collect-submodules gi \
+              main.py
+          fi
 
       - name: Make binary executable
         run: chmod +x dist/PixelLauncherPro
